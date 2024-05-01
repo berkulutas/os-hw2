@@ -44,6 +44,7 @@ void parse_input(Simulation *simulation) {
         int cat, cap;
         std::cin >> cat >> cap;
         Car car;
+        car.id = i;
         car.travel_time = cat;
         car.path_length = cap;
         for (int j = 0; j < cap; j++) {

@@ -37,6 +37,7 @@ typedef struct CarPathObject {
 } CarPathObject;
 
 typedef struct Car {
+    int id;
     int travel_time; 
     int path_length;
     std::vector<CarPathObject> path;
