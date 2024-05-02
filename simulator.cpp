@@ -26,18 +26,7 @@ void pass(CarPathObject &path_object, int car_id) {
         {
             WriteOutput(car_id, 'N', path_object.connector.id, ARRIVE);
             NarrowBridge* bridge = &simulation.narrow_bridges[path_object.connector.id];
-            if (path_object.direction.from == 0)
-            {
-                bridge->pass_bridge_0(path_object.direction, car_id);
-                sleep_milli(bridge->travel_time);
-                bridge->leave_bridge_0(car_id);
-            }
-            else
-            {
-                bridge->pass_bridge_1(path_object.direction, car_id);
-                sleep_milli(bridge->travel_time);
-                bridge->leave_bridge_1(car_id);
-            }
+            bridge->pass_bridge(path_object.direction, car_id);
             break;
 
         }
