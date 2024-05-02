@@ -4,16 +4,38 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <queue>
+#include "monitor.h"
 
 typedef struct Direction {
     int from;
     int to;
 } Direction;
 
-typedef struct NarrowBridge {
-    int travel_time;
+// typedef struct NarrowBridge {
+//     int travel_time;
+//     int max_wait;
+// } NarrowBridge;
+
+class NarrowBridge: public Monitor {
+    Condition turn0;
+    Condition turn1;
     int max_wait;
-} NarrowBridge;
+    std::queue<int> w0, w1;
+    int direction;
+    int on_bridge_0; 
+    int on_bridge_1;
+public: 
+    int travel_time;
+    int id;
+    bool passed_before;
+public:
+    NarrowBridge(int travel_time, int max_wait, int id); 
+    void pass_bridge_0(Direction Direction, int car_id);
+    void pass_bridge_1(Direction Direction, int car_id);
+    void leave_bridge_0(int car_id);
+    void leave_bridge_1(int car_id);
+}; 
 
 typedef struct Ferry {
     int travel_time;

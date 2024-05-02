@@ -28,9 +28,11 @@ public:
         Lock(Monitor *o) { // we need monitor ptr to access the mutex
             owner = o;
             pthread_mutex_lock(&owner->mut); // lock on creation
+            // printf("LOCKED\n");
         }
         ~Lock() { 
             pthread_mutex_unlock(&owner->mut); // unlock on destruct
+            // printf("UNLOCKED\n");
         }
         void lock() { pthread_mutex_lock(&owner->mut);}
         void unlock() { pthread_mutex_unlock(&owner->mut);}
