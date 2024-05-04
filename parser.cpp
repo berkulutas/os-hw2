@@ -2,6 +2,21 @@
 #include "helper.h"
 #include "WriteOutput.h"
 
+void milliseconds_to_absolute_timespec(int milliseconds, struct timespec *abs_time) {
+    // Get current time
+    clock_gettime(CLOCK_REALTIME, abs_time);
+
+    // Add milliseconds to the current time
+    abs_time->tv_sec += milliseconds / 1000;
+    abs_time->tv_nsec += (milliseconds % 1000) * 1000000;
+
+    // Adjust if nanoseconds overflow into seconds
+    if (abs_time->tv_nsec >= 1000000000) {
+        abs_time->tv_sec++;
+        abs_time->tv_nsec -= 1000000000;
+    }
+}
+
 void parse_input(Simulation *simulation) {
     int NN;
     int FN;
@@ -70,207 +85,79 @@ ConnectorObject parse_pc(std::string pc) {
     return {type, id};
 }
 
-NarrowBridge::NarrowBridge(int travel_time, int max_wait, int id) : turn0(this), turn1(this) {
-    this->travel_time = travel_time;
-    this->max_wait = max_wait;
-    this->id = id;
-    this->passed_before = false;
-    direction = 0;
-    on_bridge_0 = 0;
-    on_bridge_1 = 0;
-    timer_started = false;
-}
+class NarrowBridge: public Monitor {
+    Condition turn0;
+    Condition turn1;
+    Condition delay;
+    Condition travel;
+    int max_wait;
+    std::queue<int> q0, q1;
+    int direction;
+    int on_bridge_0; 
+    int on_bridge_1;
+    bool timer_started; 
+public: 
+    int travel_time;
+    int id;
+    bool passed_before;
+public:
+    NarrowBridge(int travel_time, int max_wait, int id)
+    : turn0(this), turn1(this), delay(this), travel(this)
+    {
+        this->travel_time = travel_time;
+        this->max_wait = max_wait;
+        this->id = id;
+        this->on_bridge_0 = 0;
+        this->on_bridge_1 = 0;
+        this->timer_started = false;
+        this->passed_before = false;
+    }
+    void pass_bridge(Direction direction, int car_id);
+}; 
+
 
 void NarrowBridge::pass_bridge(Direction direction, int car_id) {
     __synchronized__;
     // car direction 0 -> 1
     if (direction.from == 0) {
         q0.push(car_id);
-        while(1) {
-            // opposite directions
-            if (direction.from != this->direction) {
-                // bridge has cars
-                if (on_bridge_1 > 0) {
-                    if (!timer_started) {
-                        timer_started = true;
-                        // start timer when it exceeds direction change
-                        // turn0.timedwait((timespec*)this->max_wait); // TODO
-                        // if no cars in the opposite direction
-                        // change direction
-                        // while (on_bridge_1 > 0) {
-                        //     turn0.wait();
-                        // }
-                        // this->direction = 1;
-                        // printf("DIRECTION CHANGERD 0\n");
-                        // passed_before = false;
-                        // timer_started = false;
-                        // turn0.notifyAll();
-                        
-                    }
-                    else {
-                        // wait for the other cars to pass
-                        while (q0.front() != car_id) {
-                            turn0.wait();
-                        }
-                    }
-                }
-                // no cars in the opposite direction
-                else {
-                    // change direction
-                    this->direction = 1;
-                    printf("DIRECTION CHANGERD 1 \n");
-                    passed_before = false;
-                    timer_started = false;
-                    turn0.notifyAll();
-                }
-            }
-            // same direction
-            if (!passed_before) {
-                // printf("ILK ARABA 0 car id %d\n", car_id);
-                passed_before = true;
-                // start passing
-                WriteOutput(car_id, 'N', this->id, START_PASSING);
-                q0.pop();
-                on_bridge_0++;
-                turn0.notifyAll();
-                // mutex.unlock();
-                sleep_milli(this->travel_time);
-                // mutex.lock();
-                // finish passing
-                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                on_bridge_0--;
-                if (on_bridge_0 == 0) {
-                    turn1.notifyAll();
-                }
-                break;
-            }
-            else {
-                // printf("ILK DEGIL 0 car id %d\n", car_id);
-                // wait for the other cars to pass
-                while (q0.front() != car_id) {
-                    turn0.wait();
-                }
-                mutex.unlock();
-                sleep_milli(PASS_DELAY);
-                mutex.lock();
-                // direction has changed
-                if (this->direction != 0) {
-                    continue;
-                }
-                // direction same pass the bridge
-                // start passing
-                WriteOutput(car_id, 'N', this->id, START_PASSING);
-                q0.pop();
-                on_bridge_0++;
-                turn0.notifyAll();
-                // mutex.unlock();
-                sleep_milli(this->travel_time);
-                // mutex.lock();
-                // finish passing
-                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                on_bridge_0--;
-                if (on_bridge_0 == 0) {
-                    turn1.notifyAll();
-                }
-                break;
-            }
+        printf("car %d is waiting\n", car_id);
+        timespec ts;
+        milliseconds_to_absolute_timespec(5000, &ts);
+        turn0.timedwait(&ts);
+        printf("car %d is passing\n", car_id);
 
+        /*
+        
+        // opposite direction has the right of way
+        if (this->direction == 1) {
+            // empty road or no cars waiting
+            // TODO change direction
+
+            // there are cars on opposite direction
+            // wait for them to pass start timer 
         }
 
+        // same direction has the right of way
+        else {
+            // empty road or no cars waiting
+            if (on_bridge_0 == 0) {
+                on_bridge_0++;
+                q0.pop();
+                WriteOutput(car_id, 'N', this->id, START_PASSING);
+                timespec ts;
+                milliseconds_to_absolute_timespec(travel_time, &ts);
+                travel.timedwait(&ts);
+                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+            }
+            // there are cars on the road
+            else {
+                // wait for the car to pass
+            }
+        }
+
+        */
     }
     // car direction 1 -> 0
-    else {
-        q1.push(car_id);
-        while(1) {
-            // opposite directions
-            if (direction.from != this->direction) {
-                // bridge has cars
-                if (on_bridge_0 > 0) {
-                    if (!timer_started) {
-                        timer_started = true;
-                        // start timer when it exceeds direction change
-                        // turn1.timedwait((timespec *)this->max_wait); // TODO
-                        // if no cars in the opposite direction
-                        // change direction
-                        // while (on_bridge_0 > 0) {
-                        //     turn1.wait();
-                        // }
-                        // this->direction = 0;
-                        // printf("DIRECTION CHANGERD 2 \n");
-                        // passed_before = false;
-                        // timer_started = false;
-                        // turn1.notifyAll();
-                        
-                    }
-                    else {
-                        // wait for the other cars to pass
-                        while (q1.front() != car_id) {
-                            turn1.wait();
-                        }
-                    }
-                }
-                // no cars in the opposite direction
-                else {
-                    // change direction
-                    this->direction = 0;
-                    printf("DIRECTION CHANGERD 3 \n");
-                    passed_before = false;
-                    timer_started = false;
-                    turn1.notifyAll();
-                }
-            }
-            // same direction
-            if (!passed_before) {
-                // printf("ILK ARABA 0 car id %d\n", car_id);
-                passed_before = true;
-                // start passing
-                WriteOutput(car_id, 'N', this->id, START_PASSING);
-                q1.pop();
-                on_bridge_1++;
-                turn1.notifyAll();
-                // mutex.unlock();
-                sleep_milli(this->travel_time);
-                // mutex.lock();
-                // finish passing
-                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                on_bridge_1--;
-                if (on_bridge_1 == 0) {
-                    turn0.notifyAll();
-                }
-                break;
-            }
-            else {
-                // printf("ILK DEGIL 1 car id %d\n", car_id);
-                // wait for the other cars to pass
-                while (q1.front() != car_id) {
-                    turn1.wait();
-                }
-                mutex.unlock();
-                sleep_milli(PASS_DELAY);
-                mutex.lock();
-                // direction has changed
-                if (this->direction != 1) {
-                    continue;
-                }
-                // direction same pass the bridge
-                // start passing
-                WriteOutput(car_id, 'N', this->id, START_PASSING);
-                q1.pop();
-                on_bridge_1++;
-                turn1.notifyAll();
-                // mutex.unlock();
-                sleep_milli(this->travel_time);
-                // mutex.lock();
-                // finish passing
-                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                on_bridge_1--;
-                if (on_bridge_1 == 0) {
-                    turn0.notifyAll();
-                }
-                break;
-            }
-
-        }
-
-    }
+    
 }

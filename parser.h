@@ -12,28 +12,25 @@ typedef struct Direction {
     int to;
 } Direction;
 
-// typedef struct NarrowBridge {
-//     int travel_time;
+// class NarrowBridge: public Monitor {
+//     Condition turn0;
+//     Condition turn1;
+//     Condition delay;
+//     Condition travel;
 //     int max_wait;
-// } NarrowBridge;
-
-class NarrowBridge: public Monitor {
-    Condition turn0;
-    Condition turn1;
-    int max_wait;
-    std::queue<int> q0, q1;
-    int direction;
-    int on_bridge_0; 
-    int on_bridge_1;
-    bool timer_started; 
-public: 
-    int travel_time;
-    int id;
-    bool passed_before;
-public:
-    NarrowBridge(int travel_time, int max_wait, int id); 
-    void pass_bridge(Direction direction, int car_id);
-}; 
+//     std::queue<int> q0, q1;
+//     int direction;
+//     int on_bridge_0; 
+//     int on_bridge_1;
+//     bool timer_started; 
+// public: 
+//     int travel_time;
+//     int id;
+//     bool passed_before;
+// public:
+//     NarrowBridge(int travel_time, int max_wait, int id); 
+//     void pass_bridge(Direction direction, int car_id);
+// }; 
 
 typedef struct Ferry {
     int travel_time;
