@@ -204,7 +204,10 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                     if (turn0.timedwait(&ts) == ETIMEDOUT) {
                         this->direction = 0;
                         timer_started = false;
+                        // wait for last car to pass
+                        turn0.wait();
                         turn0.notifyAll();
+                        turn1.notifyAll();
                         continue;
                     }
                 }
@@ -219,11 +222,14 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                     timespec ts;
                     milliseconds_to_absolute_timespec(this->max_wait, &ts);
                     if (turn1.timedwait(&ts) == ETIMEDOUT) {
-                        printf("TIMEOUT happened\n");
+                        // printf("TIMEOUT happened\n");
                         this->direction = 1;
-                        printf("direction changed from 0 to 1\n");
                         timer_started = false;
+                        // printf("direction changed from 0 to 1\n");
+                        // wait for last car to pass
+                        turn1.wait();
                         turn1.notifyAll();
+                        turn0.notifyAll();
                         continue;
                     }
 
