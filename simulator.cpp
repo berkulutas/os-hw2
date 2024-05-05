@@ -11,10 +11,6 @@ Simulation simulation;
 std::vector<pthread_t> threads;
 
 
-void pass_ferry(CarPathObject &path_object, int car_id) {
-    // sleep for travel time
-}
-
 void pass_crossroad(CarPathObject &path_object, int car_id) {
     // sleep for travel time
 }
@@ -32,7 +28,9 @@ void pass(CarPathObject &path_object, int car_id) {
         }
         case 'F':
         {
-            pass_ferry(path_object, car_id);
+            WriteOutput(car_id, 'F', path_object.connector.id, ARRIVE);
+            Ferry* ferry = simulation.ferries[path_object.connector.id];
+            ferry->pass_ferry(path_object.direction, car_id);
             break;
         }
         case 'C':
@@ -45,8 +43,6 @@ void pass(CarPathObject &path_object, int car_id) {
             break;   
         }
     }
-    // sleep for travel time
-
 }
 
 void *car_thread(void *arg) {
@@ -84,6 +80,9 @@ int main() {
     // free all allocated memory
     for (auto &bridge : simulation.narrow_bridges) {
         delete bridge;
+    }
+    for (auto &ferry : simulation.ferries) {
+        delete ferry;
     }
 
 }

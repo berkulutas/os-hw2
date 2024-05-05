@@ -31,11 +31,28 @@ public:
     void pass_bridge(Direction direction, int car_id);
 }; 
 
-typedef struct Ferry {
+// typedef struct Ferry {
+//     int travel_time;
+//     int max_wait;
+//     int capacity;
+// } Ferry;
+
+class Ferry: public Monitor {
+    Condition full_0, full_1;
+    Condition travel;
     int travel_time;
     int max_wait;
     int capacity;
-} Ferry;
+    int on_ferry_0;
+    int on_ferry_1;
+    std::vector<int> ferry_0;
+    std::vector<int> ferry_1;
+public:
+    int id;
+public:
+    Ferry(int travel_time, int max_wait, int capacity, int id);
+    void pass_ferry(Direction direction, int car_id);
+};
 
 typedef struct Crossroad {
     int travel_time;
@@ -66,7 +83,7 @@ typedef struct Simulation {
     int cars_count;
     
     std::vector<NarrowBridge*> narrow_bridges;
-    std::vector<Ferry> ferries;
+    std::vector<Ferry*> ferries;
     std::vector<Crossroad> crossroads;
     std::vector<Car> cars;
 } Simulation;

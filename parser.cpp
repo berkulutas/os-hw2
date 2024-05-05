@@ -40,7 +40,8 @@ void parse_input(Simulation *simulation) {
     for (int i = 0; i < FN; i++) {
         int ft, fm, fc;
         std::cin >> ft >> fm >> fc;
-        simulation->ferries.push_back({ft, fm, fc});
+        auto ptr = new Ferry(ft, fm, fc, i);
+        simulation->ferries.push_back(ptr);
     }
 
     // The next line contains the number of crossroads (CN ) in the simulation.
@@ -85,6 +86,8 @@ ConnectorObject parse_pc(std::string pc) {
     int id = std::stoi(pc.substr(1));
     return {type, id};
 }
+
+// NARROW BRIDGE
 
 NarrowBridge::NarrowBridge(int travel_time, int max_wait, int id) 
 : turn0(this), turn1(this), travel(this), delay(this)
@@ -234,3 +237,77 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
     }
 }
 
+// FERRY
+Ferry::Ferry(int travel_time, int max_wait, int capacity, int id)
+: full_0(this), full_1(this), travel(this)
+{
+    this->travel_time = travel_time;
+    this->max_wait = max_wait;
+    this->capacity = capacity;
+    this->on_ferry_0 = 0;
+    this->on_ferry_1 = 0;
+    this->id = id;
+}
+
+void Ferry::pass_ferry(Direction direction, int car_id) {
+    __synchronized__;
+    // direction 0 -> 1
+    if (direction.from == 0) {
+        // load car to ferry
+        ferry_0.push_back(car_id);
+        // no more room on ferry
+        if (ferry_0.size() == this->capacity) {
+            timespec ts;
+            milliseconds_to_absolute_timespec(this->travel_time, &ts);
+            full_0.notifyAll();
+            WriteOutput(car_id, 'F', this->id, START_PASSING);
+            travel.timedwait(&ts);
+            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+            ferry_0.pop_back();
+        }
+        else {
+            timespec ts;
+            milliseconds_to_absolute_timespec(this->max_wait, &ts);
+            if (full_0.timedwait(&ts) == ETIMEDOUT) {
+                full_0.notifyAll();
+            }
+            // pass ferry
+            timespec ts2;
+            milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+            WriteOutput(car_id, 'F', this->id, START_PASSING);
+            travel.timedwait(&ts2);
+            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+            ferry_0.pop_back();
+        }
+
+    }
+    // direction 1 -> 0
+    else {
+        // load car to ferry
+        ferry_1.push_back(car_id);
+        // no more room on ferry
+        if (ferry_1.size() == this->capacity) {
+            timespec ts;
+            milliseconds_to_absolute_timespec(this->travel_time, &ts);
+            full_1.notifyAll();
+            WriteOutput(car_id, 'F', this->id, START_PASSING);
+            travel.timedwait(&ts);
+            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+            ferry_1.pop_back();
+        }
+        else {
+            timespec ts;
+            milliseconds_to_absolute_timespec(this->max_wait, &ts);
+            if (full_1.timedwait(&ts) == ETIMEDOUT) {
+                full_1.notifyAll();
+            }
+            // pass ferry
+            timespec ts2;
+            milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+            WriteOutput(car_id, 'F', this->id, START_PASSING);
+            travel.timedwait(&ts2);
+            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+            ferry_1.pop_back();
+        }
+    }
+}
