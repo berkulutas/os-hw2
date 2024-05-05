@@ -54,10 +54,21 @@ public:
     void pass_ferry(Direction direction, int car_id);
 };
 
-typedef struct Crossroad {
+// typedef struct Crossroad {
+//     int travel_time;
+//     int max_wait;
+// } Crossroad;
+
+class Crossroad: public Monitor {
+    Condition delay;
+    Condition travel;
     int travel_time;
     int max_wait;
-} Crossroad;
+    int id; 
+public:
+    Crossroad(int travel_time, int max_wait, int id);
+    void pass_crossroad(Direction direction, int car_id);
+};
 
 typedef struct ConnectorObject {
     char type;
@@ -84,7 +95,7 @@ typedef struct Simulation {
     
     std::vector<NarrowBridge*> narrow_bridges;
     std::vector<Ferry*> ferries;
-    std::vector<Crossroad> crossroads;
+    std::vector<Crossroad*> crossroads;
     std::vector<Car> cars;
 } Simulation;
 

@@ -11,10 +11,6 @@ Simulation simulation;
 std::vector<pthread_t> threads;
 
 
-void pass_crossroad(CarPathObject &path_object, int car_id) {
-    // sleep for travel time
-}
-
 void pass(CarPathObject &path_object, int car_id) {
     // determine type then do appropriate action
     switch (path_object.connector.type) {
@@ -35,7 +31,9 @@ void pass(CarPathObject &path_object, int car_id) {
         }
         case 'C':
         {
-            pass_crossroad(path_object, car_id);
+            WriteOutput(car_id, 'C', path_object.connector.id, ARRIVE);
+            Crossroad * crossroad = simulation.crossroads[path_object.connector.id];
+            crossroad->pass_crossroad(path_object.direction, car_id);
             break;
         }
         default:
@@ -83,6 +81,9 @@ int main() {
     }
     for (auto &ferry : simulation.ferries) {
         delete ferry;
+    }
+    for (auto &crossroad : simulation.crossroads) {
+        delete crossroad;
     }
 
 }

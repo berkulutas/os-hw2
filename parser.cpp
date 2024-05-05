@@ -50,7 +50,8 @@ void parse_input(Simulation *simulation) {
     for (int i = 0; i < CN; i++) {
         int ct, cm;
         std::cin >> ct >> cm;
-        simulation->crossroads.push_back({ct, cm});
+        auto ptr = new Crossroad(ct, cm, i);
+        simulation->crossroads.push_back(ptr);
     }
 
     // The next line contains the number of cars (CAN ) in the simulation.
@@ -316,4 +317,22 @@ void Ferry::pass_ferry(Direction direction, int car_id) {
             ferry_1.pop_back();
         }
     }
+}
+
+// CROSSROAD
+Crossroad::Crossroad(int travel_time, int max_wait, int id)
+: travel(this), delay(this)
+{
+    this->travel_time = travel_time;
+    this->max_wait = max_wait;
+    this->id = id;
+}
+
+void Crossroad::pass_crossroad(Direction direction, int car_id) {
+    __synchronized__;
+    timespec ts;
+    milliseconds_to_absolute_timespec(this->travel_time, &ts);
+    WriteOutput(car_id, 'C', this->id, START_PASSING);
+    travel.timedwait(&ts);
+    WriteOutput(car_id, 'C', this->id, FINISH_PASSING);
 }
