@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/simulator",
-            "args": ["<", "${workspaceFolder}/io/inputs/input0.txt"],
+            "args": ["<", "${workspaceFolder}/baran_input.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
