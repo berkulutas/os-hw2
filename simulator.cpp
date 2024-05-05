@@ -25,7 +25,7 @@ void pass(CarPathObject &path_object, int car_id) {
         case 'N':
         {
             WriteOutput(car_id, 'N', path_object.connector.id, ARRIVE);
-            NarrowBridge* bridge = &simulation.narrow_bridges[path_object.connector.id];
+            NarrowBridge* bridge = simulation.narrow_bridges[path_object.connector.id];
             bridge->pass_bridge(path_object.direction, car_id);
             break;
 
@@ -59,6 +59,8 @@ void *car_thread(void *arg) {
         // try to pass connector
         pass(car->path[i], car->id);
     }
+
+    return NULL;
 }
 
 int main() {
@@ -70,13 +72,13 @@ int main() {
     // create all car threads
     for (int i = 0; i < simulation.cars_count; i++) {
         pthread_t tid;
-        threads.push_back(tid);
         pthread_create(&tid, NULL, car_thread, (void *) &simulation.cars[i]);
+        threads.push_back(tid);
     }
     
     // Wait for all threads to finish
-    for (int i = 0; i < simulation.cars_count; i++) {
-        pthread_join(threads[i], NULL);
+    for (auto &tid : threads) {
+        pthread_join(tid, NULL);
     }
 
 }

@@ -30,7 +30,8 @@ void parse_input(Simulation *simulation) {
     for (int i = 0; i < NN; i++) {
         int nt, nm;;
         std::cin >> nt >> nm;
-        simulation->narrow_bridges.push_back(NarrowBridge(nt, nm, i));
+        auto ptr = new NarrowBridge(nt, nm, i);
+        simulation->narrow_bridges.push_back(ptr);
     }
     
     // The next line contains the number of ferries (FN ) in the simulation
@@ -85,79 +86,135 @@ ConnectorObject parse_pc(std::string pc) {
     return {type, id};
 }
 
-class NarrowBridge: public Monitor {
-    Condition turn0;
-    Condition turn1;
-    Condition delay;
-    Condition travel;
-    int max_wait;
-    std::queue<int> q0, q1;
-    int direction;
-    int on_bridge_0; 
-    int on_bridge_1;
-    bool timer_started; 
-public: 
-    int travel_time;
-    int id;
-    bool passed_before;
-public:
-    NarrowBridge(int travel_time, int max_wait, int id)
-    : turn0(this), turn1(this), delay(this), travel(this)
-    {
-        this->travel_time = travel_time;
-        this->max_wait = max_wait;
-        this->id = id;
-        this->on_bridge_0 = 0;
-        this->on_bridge_1 = 0;
-        this->timer_started = false;
-        this->passed_before = false;
-    }
-    void pass_bridge(Direction direction, int car_id);
-}; 
+NarrowBridge::NarrowBridge(int travel_time, int max_wait, int id) 
+: turn0(this), turn1(this), travel(this), delay(this)
+{
+    this->travel_time = travel_time;
+    this->max_wait = max_wait;
+    this->id = id;
+    this->on_bridge_0 = 0;
+    this->on_bridge_1 = 0;
+    this->direction = 1;
+    this->timer_started = false;
+}
 
 
 void NarrowBridge::pass_bridge(Direction direction, int car_id) {
     __synchronized__;
-    // car direction 0 -> 1
-    if (direction.from == 0) {
-        q0.push(car_id);
-        printf("car %d is waiting\n", car_id);
-        timespec ts;
-        milliseconds_to_absolute_timespec(5000, &ts);
-        turn0.timedwait(&ts);
-        printf("car %d is passing\n", car_id);
+    if (direction.from == 0) q0.push(car_id);
+    else q1.push(car_id);
 
-        /*
-        
-        // opposite direction has the right of way
-        if (this->direction == 1) {
-            // empty road or no cars waiting
-            // TODO change direction
-
-            // there are cars on opposite direction
-            // wait for them to pass start timer 
-        }
-
-        // same direction has the right of way
-        else {
-            // empty road or no cars waiting
-            if (on_bridge_0 == 0) {
-                on_bridge_0++;
-                q0.pop();
-                WriteOutput(car_id, 'N', this->id, START_PASSING);
-                timespec ts;
-                milliseconds_to_absolute_timespec(travel_time, &ts);
-                travel.timedwait(&ts);
-                WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+    while (1) {
+        // same direction
+        if (direction.from == this->direction) {
+            // car direction 0 -> 1
+            if (direction.from == 0) {
+                if ((on_bridge_0 > 0) and (q0.front() != car_id)) {
+                    turn0.wait();
+                }
+                else if ((q0.front() == car_id) and (on_bridge_1 == 0)) { // first car on queue
+                    if (on_bridge_0 > 0) { // if a car is passing bridge
+                        timespec ts;
+                        milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
+                        delay.timedwait(&ts);
+                    }
+                    on_bridge_0++;
+                    q0.pop();
+                    WriteOutput(car_id, 'N', this->id, START_PASSING);
+                    timespec ts;
+                    turn0.notifyAll();
+                    milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                    auto retval = travel.timedwait(&ts);
+                    WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+                    on_bridge_0--;
+                    if (q0.empty() and on_bridge_0 == 0) {
+                        turn1.notifyAll();
+                    }
+                    break; // car passed
+                }
+                else {
+                    turn0.wait();
+                }
             }
-            // there are cars on the road
+            // car direction 1 -> 0
             else {
-                // wait for the car to pass
+                if ((on_bridge_1 > 0) and (q1.front() != car_id)) {
+                    turn1.wait();
+                }
+                else if ((q1.front() == car_id) and (on_bridge_0 == 0)) { // first car on queue
+                    if (on_bridge_1 > 0) { // if a car is passing bridge
+                        timespec ts;
+                        milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
+                        delay.timedwait(&ts);
+                    }
+                    on_bridge_1++;
+                    q1.pop();
+                    WriteOutput(car_id, 'N', this->id, START_PASSING);
+                    timespec ts;
+                    turn1.notifyAll();
+                    milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                    auto retval = travel.timedwait(&ts);
+                    WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+                    on_bridge_1--;
+                    if (q1.empty() and on_bridge_1 == 0) {
+                        turn0.notifyAll();
+                    }
+                    break; // car passed
+                }
+                else {
+                    turn1.wait();
+                }
+            }
+        }
+        else if ( (this->direction == 0) and (q0.empty()) and (on_bridge_0 == 0) ) {
+            this->direction = 1;
+            // printf("direction changed from 0 to 1\n");
+            turn1.notifyAll();
+        }
+        else if ( (this->direction == 1) and (q1.empty()) and (on_bridge_1 == 0) ) {
+            this->direction = 0;
+            // printf("direction changed from 1 to 0\n");
+            turn0.notifyAll();
+        }
+        else {
+            // different direction
+            if (direction.from == 0) {
+                if (timer_started == false) {
+                    timer_started = true;
+                    // printf("car %d is the first car in queue0\n", car_id);
+                    timespec ts;
+                    milliseconds_to_absolute_timespec(this->max_wait, &ts);
+                    if (turn0.timedwait(&ts) == ETIMEDOUT) {
+                        this->direction = 0;
+                        timer_started = false;
+                        turn0.notifyAll();
+                        continue;
+                    }
+                }
+                else {
+                    turn0.wait();
+                }
+            }
+            else {
+                if (timer_started == false) {
+                    timer_started = true; 
+                    // printf("car %d is the first car in queue1\n", car_id); 
+                    timespec ts;
+                    milliseconds_to_absolute_timespec(this->max_wait, &ts);
+                    if (turn1.timedwait(&ts) == ETIMEDOUT) {
+                        this->direction = 1;
+                        timer_started = false;
+                        turn1.notifyAll();
+                        continue;
+                    }
+
+                }
+                else {
+                    turn1.wait();
+                }
             }
         }
 
-        */
     }
-    // car direction 1 -> 0
-    
 }
+
