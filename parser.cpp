@@ -94,7 +94,7 @@ NarrowBridge::NarrowBridge(int travel_time, int max_wait, int id)
     this->id = id;
     this->on_bridge_0 = 0;
     this->on_bridge_1 = 0;
-    this->direction = 1;
+    this->direction = 0;
     this->timer_started = false;
 }
 
@@ -118,19 +118,25 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
                         delay.timedwait(&ts);
                     }
-                    on_bridge_0++;
-                    q0.pop();
-                    WriteOutput(car_id, 'N', this->id, START_PASSING);
-                    timespec ts;
-                    turn0.notifyAll();
-                    milliseconds_to_absolute_timespec(this->travel_time, &ts);
-                    auto retval = travel.timedwait(&ts);
-                    WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                    on_bridge_0--;
-                    if (q0.empty() and on_bridge_0 == 0) {
-                        turn1.notifyAll();
+                    if (direction.from == this->direction) {
+                        on_bridge_0++;
+                        q0.pop();
+                        WriteOutput(car_id, 'N', this->id, START_PASSING);
+                        timespec ts;
+                        turn0.notifyAll();
+                        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                        auto retval = travel.timedwait(&ts);
+                        WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+                        on_bridge_0--;
+                        if ((q0.empty() and on_bridge_0 == 0) or (this->direction == 1)) {
+                            turn1.notifyAll();
+                        }
+                        break; // car passed
                     }
-                    break; // car passed
+                    else {
+                        printf("while pass delay direction changed car_id = %d\n", car_id); 
+                        continue; // direction changed
+                    }
                 }
                 else {
                     turn0.wait();
@@ -147,19 +153,25 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
                         delay.timedwait(&ts);
                     }
-                    on_bridge_1++;
-                    q1.pop();
-                    WriteOutput(car_id, 'N', this->id, START_PASSING);
-                    timespec ts;
-                    turn1.notifyAll();
-                    milliseconds_to_absolute_timespec(this->travel_time, &ts);
-                    auto retval = travel.timedwait(&ts);
-                    WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
-                    on_bridge_1--;
-                    if (q1.empty() and on_bridge_1 == 0) {
-                        turn0.notifyAll();
+                    if (direction.from == this->direction) {
+                        on_bridge_1++;
+                        q1.pop();
+                        WriteOutput(car_id, 'N', this->id, START_PASSING);
+                        timespec ts;
+                        turn1.notifyAll();
+                        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                        auto retval = travel.timedwait(&ts);
+                        WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
+                        on_bridge_1--;
+                        if ((q1.empty() and on_bridge_1 == 0) or (this->direction == 0)) {
+                            turn0.notifyAll();
+                        }
+                        break; // car passed
                     }
-                    break; // car passed
+                    else {
+                        printf("while pass delay direction changed car_id = %d\n", car_id); 
+                        continue; // direction changed
+                    }
                 }
                 else {
                     turn1.wait();
@@ -168,12 +180,14 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
         }
         else if ( (this->direction == 0) and (q0.empty()) and (on_bridge_0 == 0) ) {
             this->direction = 1;
-            // printf("direction changed from 0 to 1\n");
+            timer_started = false;
+            printf("YOL BOS anam direction changed from 0 to 1\n");
             turn1.notifyAll();
         }
         else if ( (this->direction == 1) and (q1.empty()) and (on_bridge_1 == 0) ) {
             this->direction = 0;
-            // printf("direction changed from 1 to 0\n");
+            timer_started = false; 
+            printf("YOL BOS anam  direction changed from 1 to 0\n");
             turn0.notifyAll();
         }
         else {
@@ -181,7 +195,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
             if (direction.from == 0) {
                 if (timer_started == false) {
                     timer_started = true;
-                    // printf("car %d is the first car in queue0\n", car_id);
+                    printf("car %d is the first car in queue0\n", car_id);
                     timespec ts;
                     milliseconds_to_absolute_timespec(this->max_wait, &ts);
                     if (turn0.timedwait(&ts) == ETIMEDOUT) {
@@ -198,11 +212,13 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
             else {
                 if (timer_started == false) {
                     timer_started = true; 
-                    // printf("car %d is the first car in queue1\n", car_id); 
+                    printf("car %d is the first car in queue1\n", car_id);
                     timespec ts;
                     milliseconds_to_absolute_timespec(this->max_wait, &ts);
                     if (turn1.timedwait(&ts) == ETIMEDOUT) {
+                        printf("TIMEOUT happened\n");
                         this->direction = 1;
+                        printf("direction changed from 0 to 1\n");
                         timer_started = false;
                         turn1.notifyAll();
                         continue;
