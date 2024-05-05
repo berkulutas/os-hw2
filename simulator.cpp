@@ -81,4 +81,9 @@ int main() {
         pthread_join(tid, NULL);
     }
 
+    // free all allocated memory
+    for (auto &bridge : simulation.narrow_bridges) {
+        delete bridge;
+    }
+
 }
