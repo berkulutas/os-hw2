@@ -137,7 +137,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         break; // car passed
                     }
                     else {
-                        printf("while pass delay direction changed car_id = %d\n", car_id); 
+                        // printf("while pass delay direction changed car_id = %d\n", car_id); 
                         continue; // direction changed
                     }
                 }
@@ -172,7 +172,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         break; // car passed
                     }
                     else {
-                        printf("while pass delay direction changed car_id = %d\n", car_id); 
+                        // printf("while pass delay direction changed car_id = %d\n", car_id); 
                         continue; // direction changed
                     }
                 }
@@ -184,13 +184,13 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
         else if ( (this->direction == 0) and (q0.empty()) and (on_bridge_0 == 0) ) {
             this->direction = 1;
             timer_started = false;
-            printf("YOL BOS anam direction changed from 0 to 1\n");
+            // printf("YOL BOS direction changed from 0 to 1\n");
             turn1.notifyAll();
         }
         else if ( (this->direction == 1) and (q1.empty()) and (on_bridge_1 == 0) ) {
             this->direction = 0;
             timer_started = false; 
-            printf("YOL BOS anam  direction changed from 1 to 0\n");
+            // printf("YOL BOS direction changed from 1 to 0\n");
             turn0.notifyAll();
         }
         else {
@@ -198,7 +198,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
             if (direction.from == 0) {
                 if (timer_started == false) {
                     timer_started = true;
-                    printf("car %d is the first car in queue0\n", car_id);
+                    // printf("car %d is the first car in queue0\n", car_id);
                     timespec ts;
                     milliseconds_to_absolute_timespec(this->max_wait, &ts);
                     if (turn0.timedwait(&ts) == ETIMEDOUT) {
@@ -218,7 +218,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
             else {
                 if (timer_started == false) {
                     timer_started = true; 
-                    printf("car %d is the first car in queue1\n", car_id);
+                    // printf("car %d is the first car in queue1\n", car_id);
                     timespec ts;
                     milliseconds_to_absolute_timespec(this->max_wait, &ts);
                     if (turn1.timedwait(&ts) == ETIMEDOUT) {
