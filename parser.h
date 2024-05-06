@@ -38,15 +38,12 @@ public:
 // } Ferry;
 
 class Ferry: public Monitor {
-    Condition full_0, full_1;
+    Condition full[2];
     Condition travel;
     int travel_time;
     int max_wait;
     int capacity;
-    int on_ferry_0;
-    int on_ferry_1;
-    std::vector<int> ferry_0;
-    std::vector<int> ferry_1;
+    int on_ferry[2];
 public:
     int id;
 public:

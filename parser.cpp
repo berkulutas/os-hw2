@@ -246,77 +246,108 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
 
 // FERRY
 Ferry::Ferry(int travel_time, int max_wait, int capacity, int id)
-: full_0(this), full_1(this), travel(this)
+: travel(this), full{this, this}
 {
     this->travel_time = travel_time;
     this->max_wait = max_wait;
     this->capacity = capacity;
-    this->on_ferry_0 = 0;
-    this->on_ferry_1 = 0;
+    this->on_ferry[0] = 0;
+    this->on_ferry[1] = 0;
     this->id = id;
 }
 
 void Ferry::pass_ferry(Direction direction, int car_id) {
     __synchronized__;
-    // direction 0 -> 1
-    if (direction.from == 0) {
-        // load car to ferry
-        ferry_0.push_back(car_id);
-        // no more room on ferry
-        if (ferry_0.size() == this->capacity) {
-            timespec ts;
-            milliseconds_to_absolute_timespec(this->travel_time, &ts);
-            full_0.notifyAll();
-            WriteOutput(car_id, 'F', this->id, START_PASSING);
-            travel.timedwait(&ts);
-            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
-            ferry_0.pop_back();
-        }
-        else {
-            timespec ts;
-            milliseconds_to_absolute_timespec(this->max_wait, &ts);
-            if (full_0.timedwait(&ts) == ETIMEDOUT) {
-                full_0.notifyAll();
-            }
-            // pass ferry
-            timespec ts2;
-            milliseconds_to_absolute_timespec(this->travel_time, &ts2);
-            WriteOutput(car_id, 'F', this->id, START_PASSING);
-            travel.timedwait(&ts2);
-            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
-            ferry_0.pop_back();
-        }
+    int my_direction = direction.from;
+    on_ferry[my_direction]++; 
 
+    if (on_ferry[my_direction] == this->capacity) {
+        timespec ts;
+        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+        on_ferry[my_direction] = 0;
+        full[my_direction].notifyAll();
+        WriteOutput(car_id, 'F', this->id, START_PASSING);
+        travel.timedwait(&ts);
+        WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
     }
-    // direction 1 -> 0
     else {
-        // load car to ferry
-        ferry_1.push_back(car_id);
-        // no more room on ferry
-        if (ferry_1.size() == this->capacity) {
-            timespec ts;
-            milliseconds_to_absolute_timespec(this->travel_time, &ts);
-            full_1.notifyAll();
-            WriteOutput(car_id, 'F', this->id, START_PASSING);
-            travel.timedwait(&ts);
-            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
-            ferry_1.pop_back();
+        timespec ts;
+        milliseconds_to_absolute_timespec(this->max_wait, &ts);
+        if (full[my_direction].timedwait(&ts) == ETIMEDOUT) {
+            on_ferry[my_direction] = 0; 
+            full[my_direction].notifyAll();
         }
-        else {
-            timespec ts;
-            milliseconds_to_absolute_timespec(this->max_wait, &ts);
-            if (full_1.timedwait(&ts) == ETIMEDOUT) {
-                full_1.notifyAll();
-            }
-            // pass ferry
-            timespec ts2;
-            milliseconds_to_absolute_timespec(this->travel_time, &ts2);
-            WriteOutput(car_id, 'F', this->id, START_PASSING);
-            travel.timedwait(&ts2);
-            WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
-            ferry_1.pop_back();
-        }
-    }
+        timespec ts2;
+        milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+        WriteOutput(car_id, 'F', this->id, START_PASSING);
+        travel.timedwait(&ts2);
+        WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+    } 
+
+    // // direction 0 -> 1
+    // if (direction.from == 0) {
+    //     // load car to ferry
+    //     ferry_0.push_back(car_id);
+    //     // no more room on ferry
+    //     if (ferry_0.size() == this->capacity) {
+    //         timespec ts;
+    //         milliseconds_to_absolute_timespec(this->travel_time, &ts);
+    //         // pop all cars from ferry
+    //         while (ferry_0.size() > 0) {
+    //             ferry_0.pop_back();
+    //         }
+    //         full_0.notifyAll();
+    //         WriteOutput(car_id, 'F', this->id, START_PASSING);
+    //         travel.timedwait(&ts);
+    //         WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+    //     }
+    //     else {
+    //         timespec ts;
+    //         milliseconds_to_absolute_timespec(this->max_wait, &ts);
+    //         if (full_0.timedwait(&ts) == ETIMEDOUT) {
+    //             while (ferry_0.size() > 0) {
+    //                 ferry_0.pop_back();
+    //             }
+    //             full_0.notifyAll();
+    //         }
+    //         // pass ferry
+    //         timespec ts2;
+    //         milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+    //         WriteOutput(car_id, 'F', this->id, START_PASSING);
+    //         travel.timedwait(&ts2);
+    //         WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+    //     }
+
+    // }
+    // // direction 1 -> 0
+    // else {
+    //     // load car to ferry
+    //     ferry_1.push_back(car_id);
+    //     // no more room on ferry
+    //     if (ferry_1.size() == this->capacity) {
+    //         timespec ts;
+    //         milliseconds_to_absolute_timespec(this->travel_time, &ts);
+    //         full_1.notifyAll();
+    //         WriteOutput(car_id, 'F', this->id, START_PASSING);
+    //         travel.timedwait(&ts);
+    //         WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+    //         ferry_1.pop_back();
+    //     }
+    //     else {
+    //         timespec ts;
+    //         milliseconds_to_absolute_timespec(this->max_wait, &ts);
+    //         if (full_1.timedwait(&ts) == ETIMEDOUT) {
+    //             full_1.notifyAll();
+    //         }
+    //         // pass ferry
+    //         timespec ts2;
+    //         milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+    //         WriteOutput(car_id, 'F', this->id, START_PASSING);
+    //         travel.timedwait(&ts2);
+    //         WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
+    //         ferry_1.pop_back();
+    //     }
+    // }
 }
 
 // CROSSROAD
@@ -345,10 +376,11 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
     while (1) {
         // same direction
         if (direction.from == this->direction) {
-            if ((on_crossroad > 0) and queues[my_direction].front() != car_id) {
+            if ((on_crossroad > 0) and (queues[my_direction].front() != car_id)) {
                 turns[my_direction].wait();
             }
             else if ((queues[my_direction].front() == car_id)) { // first car on queue
+                printf("direction %d que front %d, car_id %d\n", my_direction, queues[my_direction].front(), car_id);
                 if (on_crossroad > 0) { // if a car is passing bridge in same direction
                     timespec ts;
                     milliseconds_to_absolute_timespec(PASS_DELAY, &ts); // wait pass delay
@@ -365,7 +397,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                     WriteOutput(car_id, 'C', this->id, FINISH_PASSING);
                     on_crossroad--;
                     // if direction already changed, notify it
-                    if (this->direction != my_direction) {
+                    if ((this->direction != my_direction) and (on_crossroad == 0)) {
                         turns[this->direction].notifyAll();
                     }
                     // direction same but no more cars, notify incrementally next direction waiting cars
@@ -379,13 +411,13 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                                 turns[next_direction].notifyAll();
                                 break;
                             }
-                            // printf("NO BUSY NEXT ROAD FOUND!!!!\n");
+                            printf("NO BUSY NEXT ROAD FOUND!!!! 0\n");
                         }
                     }
                     break; // car passed
                 }
                 else {
-                    // printf("while pass delay direction changed car_id = %d\n", car_id); 
+                    printf("while pass delay direction changed car_id = %d\n", car_id);
                     continue; // direction changed
                 }
             }
@@ -404,23 +436,28 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
         // different direction
         else {
             if (timer_started == false) {
+                printf("car %d is started timer on direction%d, at time %llu\n", car_id, my_direction, GetTimestamp());
                 timer_started = true;
                 timespec ts;
                 milliseconds_to_absolute_timespec(this->max_wait, &ts);
                 if (turns[my_direction].timedwait(&ts) == ETIMEDOUT) {
-                    // printf("TIMEOUT happened\n");
+                    printf("TIMEOUT happened at %llu\n", GetTimestamp());
                     int prev_direction = this->direction; // prev direction of crossroad
                     // find first busy next direction
                     for (int i = 1; i < 4; i++) {
-                        int next_direction = (my_direction + i) % 4;
+                        int next_direction = (this->direction + i) % 4;
                         if (queues[next_direction].empty() == false) {
                             this->direction = next_direction;
-                            timer_started = false;
+                            printf("direction changed from %d to %d, at time %llu\n", prev_direction, next_direction, GetTimestamp());
                             break;
                         }
+                        printf("NO BUSY NEXT ROAD FOUND!!!! 1\n");
                     }
                     // wait for last car to pass
-                    turns[prev_direction].wait();
+                    printf("car %d is waiting for last car to pass in direction %d, at time %llu\n", car_id,prev_direction, GetTimestamp());
+                    turns[this->direction].wait();
+                    timer_started = false;
+                    printf("last car passed in direction %d, at time %llu\n", prev_direction, GetTimestamp());
                     // notify all directions
                     for (int i = 0; i < 4; i++) {
                         turns[i].notifyAll();
