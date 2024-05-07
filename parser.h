@@ -12,6 +12,7 @@ typedef struct Direction {
     int to;
 } Direction;
 
+
 class NarrowBridge: public Monitor {
     Condition turn0;
     Condition turn1;
@@ -31,11 +32,6 @@ public:
     void pass_bridge(Direction direction, int car_id);
 }; 
 
-// typedef struct Ferry {
-//     int travel_time;
-//     int max_wait;
-//     int capacity;
-// } Ferry;
 
 class Ferry: public Monitor {
     Condition full[2];
@@ -51,10 +47,6 @@ public:
     void pass_ferry(Direction direction, int car_id);
 };
 
-// typedef struct Crossroad {
-//     int travel_time;
-//     int max_wait;
-// } Crossroad;
 
 class Crossroad: public Monitor {
     Condition turns[4];
@@ -72,15 +64,18 @@ public:
     void pass_crossroad(Direction direction, int car_id);
 };
 
+
 typedef struct ConnectorObject {
     char type;
     int id;
 } ConnectorObject; 
 
+
 typedef struct CarPathObject {
     ConnectorObject connector;
     Direction direction;
 } CarPathObject;
+
 
 typedef struct Car {
     int id;
@@ -88,6 +83,7 @@ typedef struct Car {
     int path_length;
     std::vector<CarPathObject> path;
 } Car;
+
 
 typedef struct Simulation {
     int narrow_bridges_count;
@@ -101,9 +97,12 @@ typedef struct Simulation {
     std::vector<Car> cars;
 } Simulation;
 
+
 void parse_input(Simulation *simulation);
 
 ConnectorObject parse_pc(std::string pc);
+
+void milli_to_abs_time(int milliseconds, struct timespec *abs_time);
 
 #endif //PARSER_H
 
