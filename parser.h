@@ -7,6 +7,7 @@
 #include <queue>
 #include "monitor.h"
 
+
 typedef struct Direction {
     int from;
     int to;
@@ -20,7 +21,7 @@ class NarrowBridge: public Monitor {
     std::vector<std::queue<int>> queues;
     int max_wait;
     int direction;
-    int on_bridge;
+    int on_bridge[2];
     bool timer_started; 
 public: 
     int travel_time;
