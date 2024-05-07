@@ -14,15 +14,13 @@ typedef struct Direction {
 
 
 class NarrowBridge: public Monitor {
-    Condition turn0;
-    Condition turn1;
+    Condition turns[2];
     Condition delay;
     Condition travel;
-    std::queue<int> q0, q1;
+    std::vector<std::queue<int>> queues;
     int max_wait;
     int direction;
-    int on_bridge_0; 
-    int on_bridge_1;
+    int on_bridge;
     bool timer_started; 
 public: 
     int travel_time;
