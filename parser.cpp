@@ -317,10 +317,11 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                 turns[my_direction].wait();
             }
             else if ((queues[my_direction].front() == car_id)) { // first car on queue
-                printf("direction %d que front %d, car_id %d\n", my_direction, queues[my_direction].front(), car_id);
+                // printf("direction %d que front %d, car_id %d\n", my_direction, queues[my_direction].front(), car_id);
                 if (on_crossroad > 0) { // if a car is passing bridge in same direction
                     timespec ts;
                     milliseconds_to_absolute_timespec(PASS_DELAY, &ts); // wait pass delay
+                    // printf("car %d is waiting for pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
                     delay.timedwait(&ts);
                 }
                 if (my_direction == this->direction) {
@@ -348,13 +349,13 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                                 turns[next_direction].notifyAll();
                                 break;
                             }
-                            printf("NO BUSY NEXT ROAD FOUND!!!! 0\n");
+                            // printf("NO BUSY NEXT ROAD FOUND!!!! 0\n");
                         }
                     }
                     break; // car passed
                 }
                 else {
-                    printf("while pass delay direction changed car_id = %d\n", car_id);
+                    // printf("while pass delay direction changed car_id = %d\n", car_id);
                     continue; // direction changed
                 }
             }
@@ -373,28 +374,28 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
         // different direction
         else {
             if (timer_started == false) {
-                printf("car %d is started timer on direction%d, at time %llu\n", car_id, my_direction, GetTimestamp());
+                // printf("car %d is started timer on direction%d, at time %llu\n", car_id, my_direction, GetTimestamp());
                 timer_started = true;
                 timespec ts;
                 milliseconds_to_absolute_timespec(this->max_wait, &ts);
                 if (turns[my_direction].timedwait(&ts) == ETIMEDOUT) {
-                    printf("TIMEOUT happened at %llu\n", GetTimestamp());
+                    // printf("TIMEOUT happened at %llu\n", GetTimestamp());
                     int prev_direction = this->direction; // prev direction of crossroad
                     // find first busy next direction
                     for (int i = 1; i < 4; i++) {
                         int next_direction = (this->direction + i) % 4;
                         if (queues[next_direction].empty() == false) {
                             this->direction = next_direction;
-                            printf("direction changed from %d to %d, at time %llu\n", prev_direction, next_direction, GetTimestamp());
+                            // printf("direction changed from %d to %d, at time %llu\n", prev_direction, next_direction, GetTimestamp());
                             break;
                         }
-                        printf("NO BUSY NEXT ROAD FOUND!!!! 1\n");
+                        // printf("NO BUSY NEXT ROAD FOUND!!!! 1\n");
                     }
                     // wait for last car to pass
-                    printf("car %d is waiting for last car to pass in direction %d, at time %llu\n", car_id,prev_direction, GetTimestamp());
+                    // printf("car %d is waiting for last car to pass in direction %d, at time %llu\n", car_id,prev_direction, GetTimestamp());
                     turns[this->direction].wait();
                     timer_started = false;
-                    printf("last car passed in direction %d, at time %llu\n", prev_direction, GetTimestamp());
+                    // printf("last car passed in direction %d, at time %llu\n", prev_direction, GetTimestamp());
                     // notify all directions
                     for (int i = 0; i < 4; i++) {
                         turns[i].notifyAll();

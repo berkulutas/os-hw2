@@ -1,0 +1,38 @@
+ThreadID: 400640fd6a700000, CarID: 0, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 400600f46a700000, CarID: 2, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 4006a0fc6a700000, CarID: 1, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 4006e0f76a700000, CarID: 3, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 400640f76a700000, CarID: 4, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 4006a0f66a700000, CarID: 5, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 400600f66a700000, CarID: 6, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+ThreadID: 400660f56a700000, CarID: 7, Object: C0, time stamp: 0, AID: 0 traveling to connector.
+
+ThreadID: 400600f46a700000, CarID: 2, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400640fd6a700000, CarID: 0, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 4006a0fc6a700000, CarID: 1, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400640f76a700000, CarID: 4, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400600f46a700000, CarID: 2, Object: C0, time stamp: 100, AID: 2 started passing connector.
+
+ThreadID: 4006e0f76a700000, CarID: 3, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 4006a0f66a700000, CarID: 5, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400600f66a700000, CarID: 6, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400660f56a700000, CarID: 7, Object: C0, time stamp: 100, AID: 1 arrived at connector.
+ThreadID: 400640fd6a700000, CarID: 0, Object: C0, time stamp: 110, AID: 2 started passing connector.
+
+ThreadID: 400600f46a700000, CarID: 2, Object: C0, time stamp: 200, AID: 3 finished passing connector.
+ThreadID: 400640fd6a700000, CarID: 0, Object: C0, time stamp: 210, AID: 3 finished passing connector.
+
+ThreadID: 400640f76a700000, CarID: 4, Object: C0, time stamp: 210, AID: 2 started passing connector.
+ThreadID: 4006a0f66a700000, CarID: 5, Object: C0, time stamp: 220, AID: 2 started passing connector.
+ThreadID: 400640f76a700000, CarID: 4, Object: C0, time stamp: 310, AID: 3 finished passing connector.
+ThreadID: 4006a0f66a700000, CarID: 5, Object: C0, time stamp: 320, AID: 3 finished passing connector.
+
+ThreadID: 4006a0fc6a700000, CarID: 1, Object: C0, time stamp: 320, AID: 2 started passing connector.
+ThreadID: 4006e0f76a700000, CarID: 3, Object: C0, time stamp: 331, AID: 2 started passing connector.
+ThreadID: 4006a0fc6a700000, CarID: 1, Object: C0, time stamp: 422, AID: 3 finished passing connector.
+ThreadID: 4006e0f76a700000, CarID: 3, Object: C0, time stamp: 432, AID: 3 finished passing connector.
+
+ThreadID: 400600f66a700000, CarID: 6, Object: C0, time stamp: 432, AID: 2 started passing connector.
+ThreadID: 400660f56a700000, CarID: 7, Object: C0, time stamp: 442, AID: 2 started passing connector.
+ThreadID: 400600f66a700000, CarID: 6, Object: C0, time stamp: 532, AID: 3 finished passing connector.
+ThreadID: 400660f56a700000, CarID: 7, Object: C0, time stamp: 542, AID: 3 finished passing connector.
