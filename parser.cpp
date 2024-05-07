@@ -2,15 +2,15 @@
 #include "helper.h"
 #include "WriteOutput.h"
 
-void milliseconds_to_absolute_timespec(int milliseconds, struct timespec *abs_time) {
-    // Get current time
+void milli_to_abs_time(int milliseconds, struct timespec *abs_time) {
+    // get current time
     clock_gettime(CLOCK_REALTIME, abs_time);
 
-    // Add milliseconds to the current time
+    // add to curr time
     abs_time->tv_sec += milliseconds / 1000;
     abs_time->tv_nsec += (milliseconds % 1000) * 1000000;
 
-    // Adjust if nanoseconds overflow into seconds
+    // adjust overflow 
     if (abs_time->tv_nsec >= 1000000000) {
         abs_time->tv_sec++;
         abs_time->tv_nsec -= 1000000000;
@@ -119,7 +119,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                 else if ((q0.front() == car_id) and (on_bridge_1 == 0)) { // first car on queue
                     if (on_bridge_0 > 0) { // if a car is passing bridge
                         timespec ts;
-                        milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
+                        milli_to_abs_time(PASS_DELAY, &ts);
                         delay.timedwait(&ts);
                     }
                     if (direction.from == this->direction) {
@@ -128,7 +128,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         WriteOutput(car_id, 'N', this->id, START_PASSING);
                         timespec ts;
                         turn0.notifyAll();
-                        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                        milli_to_abs_time(this->travel_time, &ts);
                         auto retval = travel.timedwait(&ts);
                         WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
                         on_bridge_0--;
@@ -154,7 +154,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                 else if ((q1.front() == car_id) and (on_bridge_0 == 0)) { // first car on queue
                     if (on_bridge_1 > 0) { // if a car is passing bridge
                         timespec ts;
-                        milliseconds_to_absolute_timespec(PASS_DELAY, &ts);
+                        milli_to_abs_time(PASS_DELAY, &ts);
                         delay.timedwait(&ts);
                     }
                     if (direction.from == this->direction) {
@@ -163,7 +163,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                         WriteOutput(car_id, 'N', this->id, START_PASSING);
                         timespec ts;
                         turn1.notifyAll();
-                        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                        milli_to_abs_time(this->travel_time, &ts);
                         auto retval = travel.timedwait(&ts);
                         WriteOutput(car_id, 'N', this->id, FINISH_PASSING);
                         on_bridge_1--;
@@ -201,7 +201,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                     timer_started = true;
                     // printf("car %d is the first car in queue0\n", car_id);
                     timespec ts;
-                    milliseconds_to_absolute_timespec(this->max_wait, &ts);
+                    milli_to_abs_time(this->max_wait, &ts);
                     if (turn0.timedwait(&ts) == ETIMEDOUT) {
                         this->direction = 0;
                         timer_started = false;
@@ -221,7 +221,7 @@ void NarrowBridge::pass_bridge(Direction direction, int car_id) {
                     timer_started = true; 
                     // printf("car %d is the first car in queue1\n", car_id);
                     timespec ts;
-                    milliseconds_to_absolute_timespec(this->max_wait, &ts);
+                    milli_to_abs_time(this->max_wait, &ts);
                     if (turn1.timedwait(&ts) == ETIMEDOUT) {
                         // printf("TIMEOUT happened\n");
                         this->direction = 1;
@@ -264,7 +264,7 @@ void Ferry::pass_ferry(Direction direction, int car_id) {
 
     if (on_ferry[my_direction] == this->capacity) {
         timespec ts;
-        milliseconds_to_absolute_timespec(this->travel_time, &ts);
+        milli_to_abs_time(this->travel_time, &ts);
         on_ferry[my_direction] = 0;
         full[my_direction].notifyAll();
         WriteOutput(car_id, 'F', this->id, START_PASSING);
@@ -273,13 +273,13 @@ void Ferry::pass_ferry(Direction direction, int car_id) {
     }
     else {
         timespec ts;
-        milliseconds_to_absolute_timespec(this->max_wait, &ts);
+        milli_to_abs_time(this->max_wait, &ts);
         if (full[my_direction].timedwait(&ts) == ETIMEDOUT) {
             on_ferry[my_direction] = 0; 
             full[my_direction].notifyAll();
         }
         timespec ts2;
-        milliseconds_to_absolute_timespec(this->travel_time, &ts2);
+        milli_to_abs_time(this->travel_time, &ts2);
         WriteOutput(car_id, 'F', this->id, START_PASSING);
         travel.timedwait(&ts2);
         WriteOutput(car_id, 'F', this->id, FINISH_PASSING);
@@ -320,7 +320,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                 // printf("direction %d que front %d, car_id %d\n", my_direction, queues[my_direction].front(), car_id);
                 if (on_crossroad > 0) { // if a car is passing bridge in same direction
                     timespec ts;
-                    milliseconds_to_absolute_timespec(PASS_DELAY, &ts); // wait pass delay
+                    milli_to_abs_time(PASS_DELAY, &ts); // wait pass delay
                     // printf("car %d is waiting for pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
                     delay.timedwait(&ts);
                 }
@@ -330,7 +330,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                     WriteOutput(car_id, 'C', this->id, START_PASSING);
                     timespec ts;
                     turns[my_direction].notifyAll();
-                    milliseconds_to_absolute_timespec(this->travel_time, &ts);
+                    milli_to_abs_time(this->travel_time, &ts);
                     travel.timedwait(&ts);
                     WriteOutput(car_id, 'C', this->id, FINISH_PASSING);
                     on_crossroad--;
@@ -377,7 +377,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                 // printf("car %d is started timer on direction%d, at time %llu\n", car_id, my_direction, GetTimestamp());
                 timer_started = true;
                 timespec ts;
-                milliseconds_to_absolute_timespec(this->max_wait, &ts);
+                milli_to_abs_time(this->max_wait, &ts);
                 if (turns[my_direction].timedwait(&ts) == ETIMEDOUT) {
                     // printf("TIMEOUT happened at %llu\n", GetTimestamp());
                     int prev_direction = this->direction; // prev direction of crossroad
