@@ -39,9 +39,9 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                     timespec ts;
                     // printf("car %d waiting for pass delay at %llu\n", car_id, GetTimestamp());
                     milli_to_abs_time(PASS_DELAY, &ts); // wait pass delay
-                    printf("car %d is waiting for pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
+                    // printf("car %d is waiting for pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
                     delay.timedwait(&ts);
-                    printf("car %d wake up from pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
+                    // printf("car %d wake up from pass delay in direction %d, at time %llu\n", car_id, my_direction, GetTimestamp());
                 }
                 if (my_direction == this->direction) {
                     on_crossroad[my_direction]++;
