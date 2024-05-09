@@ -24,7 +24,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
     int my_direction = direction.from;
     // add car to queue, keep track of order
     queues[my_direction].push(car_id);
-
+    
     while (1) {
         // same direction
         if (direction.from == this->direction) {
@@ -46,6 +46,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                 if (my_direction == this->direction) {
                     on_crossroad[my_direction]++;
                     queues[my_direction].pop();
+                    turns[my_direction].notifyAll();
                     WriteOutput(car_id, 'C', this->id, START_PASSING);
                     timespec ts;
                     turns[my_direction].notifyAll();
