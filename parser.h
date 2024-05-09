@@ -55,7 +55,7 @@ class Crossroad: public Monitor {
     int max_wait;
     int id; 
     int direction;
-    int on_crossroad;
+    int on_crossroad[4];
     bool timer_started;
     std::vector<std::queue<int>> queues;
 public:
