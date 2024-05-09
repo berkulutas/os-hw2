@@ -47,8 +47,24 @@ public:
 };
 
 
+// class Crossroad: public Monitor {
+//     Condition turns[4];
+//     Condition delay;
+//     Condition travel;
+//     int travel_time;
+//     int max_wait;
+//     int id; 
+//     int direction;
+//     int on_crossroad[4];
+//     bool timer_started;
+//     std::vector<std::queue<int>> queues;
+// public:
+//     Crossroad(int travel_time, int max_wait, int id);
+//     void pass_crossroad(Direction direction, int car_id);
+// };
+
 class Crossroad: public Monitor {
-    Condition turns[4];
+    Condition turn;
     Condition delay;
     Condition travel;
     int travel_time;
@@ -62,6 +78,7 @@ public:
     Crossroad(int travel_time, int max_wait, int id);
     void pass_crossroad(Direction direction, int car_id);
 };
+
 
 
 typedef struct ConnectorObject {

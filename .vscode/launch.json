@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/simulator",
-            "args": ["<", "${workspaceFolder}/io/inputs/input9.txt"],
+            "args": ["<", "${workspaceFolder}/ccc.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
