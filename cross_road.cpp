@@ -33,7 +33,7 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
                 turns[my_direction].wait();
                 // printf("car %d waken up at %llu\n", car_id, GetTimestamp());
             }
-            else if ((queues[my_direction].front() == car_id)) { // first car on queue
+            else if ((queues[my_direction].front() == car_id) and (my_direction == this->direction)) { // first car on queue
                 // printf("direction %d que front %d, car_id %d\n", my_direction, queues[my_direction].front(), car_id);
                 if (on_crossroad[my_direction] > 0) { // if a car is passing bridge in same direction
                     timespec ts;
@@ -91,6 +91,9 @@ void Crossroad::pass_crossroad(Direction direction, int car_id) {
             timer_started = false;
             delay.notifyAll(); // edge case pass delay car should be notified
             turns[my_direction].notifyAll();
+            for (int i = 0; i < 4; i++) {
+                turns[i].notifyAll();
+            }
         }
         // different direction
         else {
